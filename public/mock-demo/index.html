@@ -1,0 +1,326 @@
+<!doctype html>
+<!--
+  PLACEHOLDER HOSTED BUILD.
+  This page stands in for the output of `flutter build web` until the build
+  backend exists. FlutterShow embeds it exactly like a real Flutter Web build:
+  as a separate document inside <FlutterDemoFrame> (an iframe), driven by its
+  own hash routes (#/, #/explore, #/details, #/profile).
+  Replace demoUrl with the real deployment, e.g. https://demos.fluttershow.dev/7xk29p/
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Flutter demo</title>
+<style>
+  :root { --accent:#1A5CF5; --soft:#E7EFFF; --surface:#F7F8FA; --ink:#18181B; --muted:#71717A; --line:rgba(0,0,0,.06); }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--surface); color:var(--ink); font-family:Roboto, "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; overscroll-behavior:none; }
+  body { display:flex; flex-direction:column; overflow:hidden; user-select:none; }
+  button, input, textarea { font:inherit; color:inherit; }
+  button { border:0; background:none; cursor:pointer; padding:0; }
+  #view { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; position:relative; }
+  #view::-webkit-scrollbar { display:none; }
+  .page { padding:8px 20px 28px; animation:in .28s cubic-bezier(.2,.7,.2,1); }
+  .push { animation:push .3s cubic-bezier(.2,.7,.2,1); }
+  @keyframes in { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+  @keyframes push { from { opacity:.4; transform:translateX(28px) } to { opacity:1; transform:none } }
+  .row { display:flex; align-items:center; }
+  .between { justify-content:space-between; }
+  .muted { color:var(--muted); }
+  h1 { font-size:26px; letter-spacing:-.02em; margin:2px 0 0; font-weight:700; }
+  h2 { font-size:17px; margin:0; font-weight:650; letter-spacing:-.01em; }
+  .small { font-size:13px; }
+  .xs { font-size:11.5px; }
+  .avatar { width:42px; height:42px; border-radius:50%; flex-shrink:0; }
+  .search { margin-top:16px; height:48px; border-radius:16px; background:#fff; box-shadow:0 0 0 1px var(--line), 0 2px 6px rgba(0,0,0,.03); display:flex; align-items:center; gap:10px; padding:0 14px; }
+  .search input { flex:1; border:0; outline:0; background:transparent; font-size:15px; min-width:0; user-select:text; }
+  .hero { margin-top:16px; height:220px; border-radius:24px; position:relative; overflow:hidden; display:block; width:100%; text-align:left; transition:transform .15s; }
+  .hero:active, .card:active, .tile:active { transform:scale(.98); }
+  .hero .tag, .tagpill { position:absolute; top:14px; right:14px; background:rgba(255,255,255,.92); color:var(--accent); font-weight:700; font-size:12px; padding:5px 10px; border-radius:99px; }
+  .hero .cap { position:absolute; left:0; right:0; bottom:0; padding:40px 18px 16px; background:linear-gradient(transparent, rgba(0,0,0,.55)); color:#fff; }
+  .hero .cap b { font-size:17px; display:block; }
+  .section { margin-top:24px; }
+  .link { color:var(--accent); font-weight:600; font-size:13px; }
+  .card { display:flex; width:100%; text-align:left; align-items:center; gap:12px; background:#fff; border-radius:18px; padding:10px; box-shadow:0 0 0 1px var(--line); margin-top:10px; transition:transform .15s; }
+  .thumb { width:58px; height:58px; border-radius:14px; flex-shrink:0; }
+  .grow { flex:1; min-width:0; }
+  .trunc { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .accent { color:var(--accent); font-weight:700; }
+  .chips { display:flex; gap:8px; margin-top:14px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
+  .chip { flex-shrink:0; height:34px; padding:0 14px; border-radius:99px; background:#fff; box-shadow:0 0 0 1px var(--line); font-size:13px; font-weight:500; transition:all .15s; }
+  .chip.on { background:var(--accent); color:#fff; box-shadow:none; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; }
+  .tile { position:relative; background:#fff; border-radius:18px; overflow:hidden; box-shadow:0 0 0 1px var(--line); text-align:left; transition:transform .15s; }
+  .tile .img { height:118px; position:relative; }
+  .tile .body { padding:10px 12px 12px; }
+  .fav { position:absolute; top:8px; right:8px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.92); display:grid; place-items:center; font-size:14px; }
+  .fav.on { color:var(--accent); }
+  .appbar { position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; padding:6px 16px; }
+  .round { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.92); display:grid; place-items:center; box-shadow:0 1px 3px rgba(0,0,0,.08); font-size:18px; }
+  .detail-img { height:300px; margin-top:-52px; }
+  .sheet { margin-top:-26px; position:relative; background:#fff; border-radius:28px 28px 0 0; padding:24px 20px 32px; min-height:400px; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:18px; }
+  .stat { background:var(--soft); border-radius:14px; padding:12px; }
+  .stat b { color:var(--accent); display:block; font-size:15px; }
+  p.body { font-size:14.5px; line-height:1.55; color:#3F3F46; }
+  .gallery { display:flex; gap:8px; margin-top:12px; }
+  .gallery div { flex:1; height:74px; border-radius:12px; }
+  .cta { width:100%; height:52px; border-radius:16px; background:var(--accent); color:#fff; font-weight:650; font-size:15px; margin-top:22px; transition:filter .15s, transform .1s; }
+  .cta:active { transform:scale(.98); filter:brightness(.95); }
+  .ghost { width:100%; height:48px; border-radius:16px; color:var(--accent); font-weight:600; margin-top:8px; }
+  .list { background:#fff; border-radius:18px; box-shadow:0 0 0 1px var(--line); margin-top:16px; overflow:hidden; }
+  .li { display:flex; align-items:center; justify-content:space-between; padding:15px 16px; width:100%; text-align:left; font-size:15px; }
+  .li + .li { border-top:1px solid var(--line); }
+  .ico { width:30px; height:30px; border-radius:9px; background:var(--soft); color:var(--accent); display:grid; place-items:center; font-size:14px; margin-right:12px; }
+  .switch { width:46px; height:28px; border-radius:99px; background:#D4D4D8; position:relative; transition:background .2s; flex-shrink:0; }
+  .switch::after { content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .2s; }
+  .switch.on { background:var(--accent); }
+  .switch.on::after { transform:translateX(18px); }
+  .stats3 { display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border-radius:18px; box-shadow:0 0 0 1px var(--line); margin-top:20px; padding:14px 0; text-align:center; }
+  .stats3 div + div { border-left:1px solid var(--line); }
+  nav { display:flex; justify-content:space-around; background:rgba(255,255,255,.96); border-top:1px solid var(--line); padding:8px 6px 6px; flex-shrink:0; }
+  nav button { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11.5px; font-weight:500; color:var(--muted); min-width:64px; }
+  nav .pill { width:56px; height:30px; border-radius:99px; display:grid; place-items:center; transition:background .2s; }
+  nav .on { color:var(--ink); font-weight:650; }
+  nav .on .pill { background:var(--soft); color:var(--accent); }
+  nav svg { width:22px; height:22px; }
+  .scrim { position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:flex-end; z-index:20; animation:fade .2s; }
+  .dialog { background:#fff; width:100%; border-radius:28px 28px 0 0; padding:10px 20px 26px; animation:up .28s cubic-bezier(.2,.7,.2,1); }
+  .grab { width:36px; height:4px; border-radius:99px; background:#D4D4D8; margin:0 auto 16px; }
+  @keyframes fade { from { opacity:0 } }
+  @keyframes up { from { transform:translateY(100%) } }
+  .field { margin-top:12px; }
+  .field label { font-size:12.5px; color:var(--muted); display:block; margin:0 0 6px 2px; }
+  .field input, .field textarea { width:100%; border:1px solid #E4E4E7; border-radius:14px; padding:13px 14px; font-size:15px; outline:0; background:#fff; user-select:text; resize:none; }
+  .field input:focus, .field textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--soft); }
+  .err { color:#DC2626; font-size:12px; margin:6px 2px 0; display:none; }
+  .invalid .err { display:block; } .invalid input { border-color:#FCA5A5; }
+  .snack { position:fixed; left:16px; right:16px; bottom:84px; background:#27272A; color:#fff; border-radius:14px; padding:14px 16px; font-size:14px; z-index:30; animation:up2 .25s; }
+  @keyframes up2 { from { opacity:0; transform:translateY(12px) } }
+  .empty { text-align:center; padding:40px 0; color:var(--muted); font-size:14px; }
+  .center-dialog { position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.4); z-index:25; padding:28px; animation:fade .2s; }
+  .center-dialog > div { background:#fff; border-radius:28px; padding:24px; width:100%; animation:pop .22s cubic-bezier(.2,.7,.2,1); }
+  @keyframes pop { from { opacity:0; transform:scale(.92) } }
+  .center-dialog .actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+  .center-dialog .actions button { padding:10px 14px; border-radius:99px; font-weight:600; color:var(--accent); }
+</style>
+</head>
+<body>
+<div id="view"></div>
+<nav id="nav"></nav>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const KEY = q.get('app') || 'default'
+  const THEMES = {
+    uzina: { accent:'#0F766E', soft:'#E3F4F1', surface:'#F5F6F4', greeting:'Good morning, Amina', headline:'Find your next home', hero:['Modern Villa, Kilimani','4 bd · 3 ba · 320 m²','KSh 45M'], cta:'Book a viewing', chips:['Buy','Rent','Villas','Apartments','Land'], tabs:['Home','Explore','Saved','Profile'], section:'Recommended',
+      items:[['Garden Apartment','Westlands','KSh 18.5M'],['Lake View Townhouse','Naivasha','KSh 27M'],['Studio Loft','Kilimani','KSh 85K/mo'],['Family Bungalow','Karen','KSh 62M'],['Penthouse Suite','Upper Hill','KSh 74M'],['Cottage Retreat','Limuru','KSh 22M']],
+      stats:[['4','Bedrooms'],['3','Baths'],['320','m²']], about:'A light-filled contemporary villa on a quiet, tree-lined street. Open-plan living flows onto a private garden with a heated pool, and the rooftop terrace has views across the city.', images:[['#D8C6A9','#7B654C'],['#A9C2B6','#3F6357'],['#E0CDBE','#93705B'],['#BCC8D6','#4E637C']], user:'Amina Wanjiru' },
+    wellness: { accent:'#D9467A', soft:'#FCE8F0', surface:'#FFF8FA', greeting:'Hi, Sarah', headline:'Day 14 of your cycle', hero:['Ovulation window','High energy · Fertile days','Day 14'], cta:'Log today', chips:['Cycle','Mood','Sleep','Nutrition','Movement'], tabs:['Today','Cycle','Insights','Profile'], section:'Today\u2019s check-ins',
+      items:[['Mood check-in','Logged · Calm','😌'],['Sleep','Last night','7h 40m'],['Hydration','6 of 8 glasses','75%'],['Gentle yoga flow','20 min','New'],['Iron-rich lunch','Recipe','12 min'],['Evening wind-down','Meditation','10 min']],
+      stats:[['28','Cycle days'],['5','Period'],['14','Today']], about:'Energy and mood tend to peak around ovulation. It\u2019s a great time for higher-intensity workouts and social plans. Keep hydrating and log any symptoms to sharpen your predictions.', images:[['#F6C3D3','#C9577F'],['#F8D9C4','#D98A63'],['#D9CCF5','#7E64C4'],['#C9E7DD','#4E9D86']], user:'Sarah Thapa' },
+    medical: { accent:'#2563EB', soft:'#E5EEFF', surface:'#F6F8FC', greeting:'Dr. Patel', headline:'12 reports to review', hero:['Complete Blood Count','Ravi K. · Today, 09:20','Ready'], cta:'Share report', chips:['All','Pending','Reviewed','Urgent','Imaging'], tabs:['Dashboard','Reports','Patients','Profile'], section:'Recent reports',
+      items:[['Lipid Panel','Maya S. · Reviewed','Normal'],['Chest X-Ray','John D. · Pending','Urgent'],['Thyroid Profile','Anita R. · Reviewed','Normal'],['MRI Brain','Leo M. · Processing','Pending'],['Vitamin D','Priya N. · Reviewed','Low'],['HbA1c','Omar F. · Pending','Review']],
+      stats:[['13.8','Hb g/dL'],['7.2','WBC'],['250','PLT']], about:'All values are within reference ranges. Hemoglobin is stable compared with the previous report from March. No further action required; recommend routine follow-up in 6 months.', images:[['#C8D8F7','#3E67C9'],['#CFE6F2','#3A86A8'],['#D7DCEA','#5B6787'],['#CDEBE3','#3D8F7A']], user:'Dr. Anjali Patel' },
+    finance: { accent:'#4F46E5', soft:'#ECEBFF', surface:'#F7F7FB', greeting:'Welcome back, Kiran', headline:'$12,480.20', hero:['Total balance','+4.2% this month','$12,480'], cta:'Send money', chips:['All','Income','Food','Bills','Travel'], tabs:['Overview','Activity','Budget','Account'], section:'Recent activity',
+      items:[['Salary','Today · Income','+$4,200'],['Groceries','Yesterday · Food','−$86.40'],['Spotify','Sep 28 · Subscriptions','−$9.99'],['Coffee Lab','Sep 27 · Food','−$4.50'],['Electricity','Sep 25 · Bills','−$64.10'],['Train pass','Sep 24 · Travel','−$42.00']],
+      stats:[['$2.1k','Spent'],['$900','Saved'],['68%','Budget']], about:'You\u2019ve used 68% of your monthly budget with 9 days to go. Food spending is 12% lower than last month — nice work. Consider moving $300 to savings to stay on track for your goal.', images:[['#C9C5FA','#4F46E5'],['#C6EBD6','#1F9D5C'],['#F7D9B8','#D98327'],['#D6D9E0','#5B6375']], user:'Kiran Rai' },
+    foodie: { accent:'#EA580C', soft:'#FFEEE3', surface:'#FFF9F5', greeting:'Hungry, Leo?', headline:'Great food near you', hero:['Sora Ramen House','Japanese · 1.2 km','4.8 ★'], cta:'Reserve a table', chips:['Nearby','Top rated','Vegan','Open now','Delivery'], tabs:['Discover','Explore','Orders','Profile'], section:'Popular nearby',
+      items:[['Trattoria Nonna','Italian · 0.8 km','4.7 ★'],['Green Bowl','Vegan · 1.5 km','4.6 ★'],['Taco Libre','Mexican · 2.1 km','4.5 ★'],['Le Petit Café','French · 0.4 km','4.9 ★'],['Spice Route','Indian · 1.9 km','4.6 ★'],['Seoul Kitchen','Korean · 2.6 km','4.4 ★']],
+      stats:[['4.8','Rating'],['$$','Price'],['25m','Wait']], about:'Rich tonkotsu broth simmered for 18 hours, hand-pulled noodles and a short, focused menu. Cozy counter seating with an open kitchen — reservations recommended on weekends.', images:[['#F5C9A3','#C2541C'],['#F3DEA0','#B8862A'],['#CDE5B5','#5D8F33'],['#EFC2B5','#A9473A']], user:'Leo Martins' },
+    default: { accent:'#1A5CF5', soft:'#E7EFFF', surface:'#F7F8FA', greeting:'Welcome', headline:q.get('name') || 'Your Flutter app', hero:['Featured','Tap to explore','New'], cta:'Get started', chips:['All','Popular','Recent','Saved'], tabs:['Home','Explore','Saved','Profile'], section:'For you',
+      items:[['Getting started','Onboarding','1'],['Components','Material 3','24'],['Animations','Implicit & explicit','8'],['Forms','Validation','5'],['Navigation','Routes','4'],['Theming','Light & dark','2']],
+      stats:[['24','Widgets'],['4','Screens'],['60','fps']], about:'This placeholder stands in for your hosted Flutter Web build. Once the build backend is connected, your real application runs here — every tap, scroll and keystroke goes to your app.', images:[['#C7D7FB','#1A5CF5'],['#CDE8F5','#1C86B8'],['#DCD3F7','#6A4FD1'],['#D3E9DE','#2F8A63']], user:'Alex Morgan' },
+  }
+  const T = THEMES[KEY] || THEMES.default
+  const root = document.documentElement.style
+  root.setProperty('--accent', T.accent); root.setProperty('--soft', T.soft); root.setProperty('--surface', T.surface)
+  document.title = (q.get('name') || 'Flutter') + ' demo'
+
+  const img = (i) => { const [a, b] = T.images[i % 4]; return `background:radial-gradient(120% 90% at 20% 15%,rgba(255,255,255,.5),transparent 55%),linear-gradient(135deg,${a},${b})` }
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]))
+  const ICONS = [
+    '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/>',
+    '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  ]
+  const svg = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`
+
+  const state = { saved: new Set([1]), chip: 0, query: '', current: 0, toggles: [true, false, true], booked: false }
+  const view = document.getElementById('view')
+  const nav = document.getElementById('nav')
+  const TABS = ['/', '/explore', '/saved', '/profile']
+
+  function snack(msg) {
+    document.querySelectorAll('.snack').forEach((n) => n.remove())
+    const n = document.createElement('div'); n.className = 'snack'; n.textContent = msg
+    document.body.appendChild(n); setTimeout(() => n.remove(), 2200)
+  }
+  const go = (r) => { location.hash = r }
+
+  const card = (it, i) => `
+    <button class="card" data-open="${i}">
+      <div class="thumb" style="${img(i + 1)}"></div>
+      <div class="grow"><div class="trunc" style="font-weight:600;font-size:15px">${esc(it[0])}</div><div class="muted small trunc">${esc(it[1])}</div></div>
+      <div class="accent small" style="padding-right:4px">${esc(it[2])}</div>
+    </button>`
+
+  const tile = (it, i) => `
+    <div class="tile">
+      <button style="display:block;width:100%;text-align:left" data-open="${i}">
+        <div class="img" style="${img(i)}"></div>
+        <div class="body"><div class="trunc" style="font-weight:600;font-size:14px">${esc(it[0])}</div><div class="muted xs trunc">${esc(it[1])}</div><div class="accent small" style="margin-top:6px">${esc(it[2])}</div></div>
+      </button>
+      <button class="fav ${state.saved.has(i) ? 'on' : ''}" data-fav="${i}" aria-label="Save">${state.saved.has(i) ? '♥' : '♡'}</button>
+    </div>`
+
+  const screens = {
+    '/': () => `
+      <div class="page">
+        <div class="row between">
+          <div><div class="muted small">${esc(T.greeting)}</div><h1>${esc(T.headline)}</h1></div>
+          <button class="avatar" style="${img(3)}" data-go="/profile" aria-label="Profile"></button>
+        </div>
+        <button class="search" data-go="/explore" style="width:100%;text-align:left"><span class="muted">${svg(ICONS[1]).replace('<svg', '<svg width="18" height="18"')}</span><span class="muted" style="font-size:15px">Search</span></button>
+        <button class="hero" style="${img(0)}" data-open="hero"><span class="tag">${esc(T.hero[2])}</span><span class="cap"><b>${esc(T.hero[0])}</b><span style="font-size:13px;opacity:.85">${esc(T.hero[1])}</span></span></button>
+        <div class="section row between"><h2>${esc(T.section)}</h2><button class="link" data-go="/explore">See all</button></div>
+        ${T.items.map(card).join('')}
+      </div>`,
+    '/explore': () => {
+      const items = T.items.map((it, i) => [it, i]).filter(([it]) => (it[0] + it[1]).toLowerCase().includes(state.query.toLowerCase()))
+      return `
+      <div class="page">
+        <h1>${esc(T.tabs[1])}</h1>
+        <label class="search"><span class="muted">${svg(ICONS[1]).replace('<svg', '<svg width="18" height="18"')}</span><input id="q" placeholder="Search" value="${esc(state.query)}" autocomplete="off" /></label>
+        <div class="chips">${T.chips.map((c, i) => `<button class="chip ${i === state.chip ? 'on' : ''}" data-chip="${i}">${esc(c)}</button>`).join('')}</div>
+        <div class="grid" id="grid">${items.map(([it, i]) => tile(it, i)).join('')}</div>
+        ${items.length ? '' : `<div class="empty">No results for “${esc(state.query)}”</div>`}
+      </div>`
+    },
+    '/saved': () => {
+      const items = [...state.saved].map((i) => [T.items[i], i])
+      return `<div class="page"><h1>${esc(T.tabs[2])}</h1>${items.length ? items.map(([it, i]) => card(it, i)).join('') : '<div class="empty">Nothing saved yet.<br/>Tap ♡ on anything you like.</div>'}</div>`
+    },
+    '/details': () => {
+      const it = state.current === 'hero' ? T.hero : T.items[state.current] || T.hero
+      const i = state.current === 'hero' ? 0 : state.current
+      return `
+      <div class="push">
+        <div class="appbar"><button class="round" data-back aria-label="Back">‹</button><button class="round" data-fav="${i}" style="color:var(--accent)" aria-label="Save">${state.saved.has(i) ? '♥' : '♡'}</button></div>
+        <div class="detail-img" style="${img(i)}"></div>
+        <div class="sheet">
+          <div class="row between" style="align-items:flex-start;gap:12px"><div><h2 style="font-size:22px">${esc(it[0])}</h2><div class="muted small" style="margin-top:4px">${esc(it[1])}</div></div><div class="accent" style="font-size:17px;white-space:nowrap">${esc(it[2])}</div></div>
+          <div class="stats">${T.stats.map((s) => `<div class="stat"><b>${esc(s[0])}</b><span class="muted xs">${esc(s[1])}</span></div>`).join('')}</div>
+          <h2 style="margin-top:22px">Overview</h2>
+          <p class="body">${esc(T.about)}</p>
+          <div class="gallery"><div style="${img(1)}"></div><div style="${img(2)}"></div><div style="${img(3)}"></div></div>
+          <button class="cta" data-form>${esc(T.cta)}</button>
+          <button class="ghost" data-share>Share</button>
+        </div>
+      </div>`
+    },
+    '/profile': () => `
+      <div class="page" style="text-align:center;padding-top:20px">
+        <div class="avatar" style="${img(3)};width:84px;height:84px;margin:0 auto;box-shadow:0 0 0 4px #fff"></div>
+        <h2 style="margin-top:12px;font-size:19px">${esc(T.user)}</h2>
+        <div class="muted small">Member since 2024</div>
+        <div class="stats3"><div><b>${state.saved.size}</b><div class="muted xs">Saved</div></div><div><b>8</b><div class="muted xs">Visits</div></div><div><b>3</b><div class="muted xs">Plans</div></div></div>
+        <div class="list" style="text-align:left">
+          ${['Notifications', 'Dark mode', 'Location access'].map((l, i) => `<button class="li" data-toggle="${i}"><span class="row"><span class="ico">${['🔔', '🌙', '📍'][i]}</span>${l}</span><span class="switch ${state.toggles[i] ? 'on' : ''}"></span></button>`).join('')}
+        </div>
+        <div class="list" style="text-align:left">
+          <button class="li" data-edit><span class="row"><span class="ico">✎</span>Edit profile</span><span class="muted">›</span></button>
+          <button class="li" data-about><span class="row"><span class="ico">ⓘ</span>About this build</span><span class="muted">›</span></button>
+          <button class="li" data-signout style="color:#DC2626"><span class="row"><span class="ico" style="background:#FEE2E2;color:#DC2626">⎋</span>Sign out</span></button>
+        </div>
+      </div>`,
+  }
+
+  function renderNav(route) {
+    const active = TABS.indexOf(route === '/details' ? '/' : route)
+    nav.innerHTML = T.tabs.map((t, i) => `<button class="${i === active ? 'on' : ''}" data-go="${TABS[i]}"><span class="pill">${svg(ICONS[i])}</span>${esc(t)}</button>`).join('')
+    nav.style.display = route === '/details' ? 'none' : 'flex'
+  }
+
+  let last = null
+  function render() {
+    let route = location.hash.replace(/^#/, '') || '/'
+    if (!screens[route]) route = '/'
+    const html = screens[route]()
+    view.innerHTML = html
+    if (route !== last) view.scrollTop = 0
+    last = route
+    renderNav(route)
+    const qi = document.getElementById('q')
+    if (qi) qi.addEventListener('input', (e) => {
+      state.query = e.target.value
+      const pos = e.target.selectionStart
+      render(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos, pos)
+    })
+  }
+
+  function sheet(html) {
+    const s = document.createElement('div'); s.className = 'scrim'
+    s.innerHTML = `<div class="dialog"><div class="grab"></div>${html}</div>`
+    s.addEventListener('click', (e) => { if (e.target === s) s.remove() })
+    document.body.appendChild(s); return s
+  }
+  function confirmDialog(title, body, ok, onOk) {
+    const d = document.createElement('div'); d.className = 'center-dialog'
+    d.innerHTML = `<div><h2 style="font-size:20px">${title}</h2><p class="body" style="margin:10px 0 0">${body}</p><div class="actions"><button data-x>Cancel</button><button data-ok>${ok}</button></div></div>`
+    d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-x]')) d.remove(); if (e.target.closest('[data-ok]')) { d.remove(); onOk && onOk() } })
+    document.body.appendChild(d)
+  }
+
+  function openForm() {
+    const s = sheet(`
+      <h2 style="font-size:20px">${esc(T.cta)}</h2>
+      <div class="muted small" style="margin-top:4px">We\u2019ll confirm by email within a few minutes.</div>
+      <form id="f" novalidate>
+        <div class="field" id="fn"><label>Full name</label><input name="name" placeholder="Your name" autocomplete="name" /><div class="err">Please enter your name</div></div>
+        <div class="field" id="fe"><label>Email</label><input name="email" type="email" placeholder="you@example.com" autocomplete="email" /><div class="err">Enter a valid email address</div></div>
+        <div class="field"><label>Note (optional)</label><textarea name="note" rows="2" placeholder="Anything we should know?"></textarea></div>
+        <button class="cta" type="submit">Confirm</button>
+      </form>`)
+    setTimeout(() => s.querySelector('input').focus(), 250)
+    s.querySelector('#f').addEventListener('submit', (e) => {
+      e.preventDefault()
+      const f = e.target, okName = f.name.value.trim().length > 1, okEmail = /^\S+@\S+\.\S+$/.test(f.email.value)
+      s.querySelector('#fn').classList.toggle('invalid', !okName)
+      s.querySelector('#fe').classList.toggle('invalid', !okEmail)
+      if (!okName || !okEmail) return
+      s.remove()
+      confirmDialog('All set 🎉', `Thanks, ${esc(f.name.value.trim().split(' ')[0])}. A confirmation is on its way to ${esc(f.email.value)}.`, 'Done')
+    })
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('button'); if (!t) return
+    if (t.dataset.go !== undefined) { go(t.dataset.go); return }
+    if (t.dataset.open !== undefined) { state.current = t.dataset.open === 'hero' ? 'hero' : +t.dataset.open; go('/details'); return }
+    if (t.dataset.fav !== undefined) {
+      e.stopPropagation(); const i = +t.dataset.fav
+      state.saved.has(i) ? state.saved.delete(i) : state.saved.add(i)
+      snack(state.saved.has(i) ? 'Saved' : 'Removed from saved'); render(); return
+    }
+    if (t.dataset.chip !== undefined) { state.chip = +t.dataset.chip; render(); return }
+    if (t.dataset.toggle !== undefined) { const i = +t.dataset.toggle; state.toggles[i] = !state.toggles[i]; render(); return }
+    if (t.hasAttribute('data-back')) { history.length > 1 ? history.back() : go('/'); return }
+    if (t.hasAttribute('data-form')) { openForm(); return }
+    if (t.hasAttribute('data-share')) { snack('Link copied to clipboard'); return }
+    if (t.hasAttribute('data-signout')) { confirmDialog('Sign out?', 'You can sign back in anytime.', 'Sign out', () => snack('Signed out (demo)')); return }
+    if (t.hasAttribute('data-about')) { confirmDialog('About this build', `Placeholder build <span style="font-family:monospace">${esc(q.get('build') || 'dev')}</span>. When the FlutterShow build service is connected, the real <b>flutter build web</b> output is served here instead.`, 'OK'); return }
+    if (t.hasAttribute('data-edit')) {
+      const s = sheet(`<h2 style="font-size:20px">Edit profile</h2><div class="field"><label>Display name</label><input id="dn" value="${esc(T.user)}" /></div><button class="cta" id="sv">Save</button>`)
+      s.querySelector('#sv').onclick = () => { const v = s.querySelector('#dn').value.trim(); if (v) T.user = v; s.remove(); render(); snack('Profile updated') }
+    }
+  })
+
+  window.addEventListener('hashchange', render)
+  render()
+})()
+</script>
+</body>
+</html>
