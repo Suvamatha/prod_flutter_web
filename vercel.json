@@ -1,5 +1,9 @@
 {
   "rewrites": [
-    { "source": "/((?!api/|assets/|favicon.svg).*)", "destination": "/index.html" }
+    {
+      "source": "/demo-assets/:projectId/:buildId/:asset*",
+      "destination": "https://bnqbhyhqczwaogqtfaev.supabase.co/storage/v1/object/public/demos/:projectId/:buildId/:asset*"
+    },
+    { "source": "/((?!api/|demo-assets/|assets/|favicon.svg).*)", "destination": "/index.html" }
   ]
 }

@@ -24,12 +24,11 @@ export default async function handler(req, res) {
   // Supabase intentionally serves HTML objects as text/plain. This small
   // same-origin endpoint corrects only index.html; large JS/WASM/assets still
   // come directly from Storage/CDN and never pass through a serverless function.
-  const storageBase =
-    `${supabaseUrl}/storage/v1/object/public/demos/${projectId}/${buildId}/`
+  const sameOriginBase = `/demo-assets/${projectId}/${buildId}/`
   let html = await upstream.text()
   html = html.replace(
     /<base\s+href=["'][^"']*["']\s*\/?>/i,
-    `<base href="${storageBase}">`,
+    `<base href="${sameOriginBase}">`,
   )
 
   res.statusCode = 200

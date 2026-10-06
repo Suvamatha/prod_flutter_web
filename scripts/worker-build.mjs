@@ -61,19 +61,17 @@ try {
   await run('flutter', ['pub', 'get'], appDir, addLog)
 
   const prefix = `${projectId}/${buildId}/`
-  const storageBase = `${supabaseUrl}/storage/v1/object/public/demos/${prefix}`
-  const baseHref = new URL(storageBase).pathname
+  const baseHref = `/demo-assets/${prefix}`
   await updateBuild({ step: 2 })
   addLog(`Building Flutter web with base path ${baseHref}`)
   await run('flutter', ['build', 'web', '--release', '--pwa-strategy=none', '--base-href', baseHref], appDir, addLog)
 
-  // The entry page is served from FlutterShow while its large assets remain on
-  // the Storage CDN. Make the base absolute so browsers do not resolve assets
-  // against the FlutterShow/Vercel origin.
+  // Flutter navigation requires a same-origin document base. Vercel rewrites
+  // /demo-assets/* to the immutable files in Supabase Storage at the CDN edge.
   const builtIndex = path.join(appDir, 'build', 'web', 'index.html')
   const indexHtml = fs.readFileSync(builtIndex, 'utf8').replace(
     /<base\s+href=["'][^"']*["']\s*\/?>/i,
-    `<base href="${storageBase}">`,
+    `<base href="${baseHref}">`,
   )
   fs.writeFileSync(builtIndex, indexHtml)
 
