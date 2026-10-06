@@ -11,8 +11,9 @@ const repositoryUrl = process.env.REPOSITORY_URL
 const appPath = process.env.APP_PATH || ''
 const supabaseUrl = process.env.SUPABASE_URL
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const publicOrigin = String(process.env.PUBLIC_APP_ORIGIN || '').replace(/\/$/, '')
 
-if (!buildId || !projectId || !repositoryUrl || !supabaseUrl || !serviceKey) throw new Error('Worker environment is incomplete.')
+if (!buildId || !projectId || !repositoryUrl || !supabaseUrl || !serviceKey || !publicOrigin) throw new Error('Worker environment is incomplete.')
 
 const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
 const logs = []
@@ -60,8 +61,8 @@ try {
   await run('flutter', ['pub', 'get'], appDir, addLog)
 
   const prefix = `${projectId}/${buildId}/`
-  const publicBase = `${supabaseUrl}/storage/v1/object/public/demos/${prefix}`
-  const baseHref = new URL(publicBase).pathname
+  const storageBase = `${supabaseUrl}/storage/v1/object/public/demos/${prefix}`
+  const baseHref = new URL(storageBase).pathname
   await updateBuild({ step: 2 })
   addLog(`Building Flutter web with base path ${baseHref}`)
   await run('flutter', ['build', 'web', '--release', '--base-href', baseHref], appDir, addLog)
@@ -83,7 +84,7 @@ try {
     }))
   }
 
-  const demoUrl = `${publicBase}index.html`
+  const demoUrl = `${publicOrigin}/api/demo-index/${projectId}/${buildId}`
   const flutterVersion = await detectFlutter(appDir)
   await updateProject({ status: 'live', demo_url: demoUrl, commit_sha: commit, flutter_version: flutterVersion })
   await updateBuild({ status: 'succeeded', step: 4, demo_url: demoUrl, completed_at: new Date().toISOString() })

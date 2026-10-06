@@ -92,6 +92,7 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY
 VITE_API_URL=/api
 VITE_SHARE_ORIGIN=https://YOUR_DOMAIN
+PUBLIC_APP_ORIGIN=https://YOUR_DOMAIN
 SUPABASE_URL
 SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
@@ -132,6 +133,50 @@ npm run dev
 7. When the build succeeds, FlutterShow displays the real app in the phone.
 8. Test the permanent `/d/:demoId` link in an incognito window.
 9. Paste the iframe snippet into a portfolio page.
+
+## Troubleshooting a build stuck on “Updating”
+
+Open the FlutterShow infrastructure repository—not the user's app—and check
+**Actions → FlutterShow build worker**.
+
+- No run: `PLATFORM_GITHUB_REPO`, `PLATFORM_GITHUB_TOKEN`, or token Actions permission is wrong.
+- Failure before “Build and publish demo”: verify the workflow repository contains the latest code and `npm ci` succeeds.
+- Missing Supabase values: add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as GitHub Actions repository secrets.
+- Flutter compilation failure: open the failed “Build and publish demo” step for the real `flutter build web` output.
+
+The application now automatically fails builds that remain queued/running for
+more than 40 minutes. To clear records created by an older version immediately,
+run this once in Supabase SQL Editor:
+
+```sql
+update public.builds
+set status = 'failed',
+    error_message = 'Build timed out before the worker reported a result.',
+    completed_at = now()
+where status in ('queued', 'running')
+  and created_at < now() - interval '40 minutes';
+
+update public.projects
+set status = case when demo_url is null then 'failed' else 'live' end,
+    updated_at = now()
+where status = 'building'
+  and updated_at < now() - interval '40 minutes';
+```
+
+## Troubleshooting HTML source appearing in the phone
+
+Supabase Storage intentionally serves `.html` objects as `text/plain`, so its
+raw `index.html` URL cannot be used as the iframe source. FlutterShow solves
+this with `/api/demo-index/:projectId/:buildId`, which serves only the small
+entry document as `text/html`. JavaScript, WASM, fonts, and images continue to
+load directly from Supabase's CDN.
+
+If a build created by an older worker shows its HTML source:
+
+1. Deploy the latest FlutterShow code.
+2. Rebuild the project; or update `projects.demo_url` to the corresponding
+   `/api/demo-index/<project-id>/<build-id>` URL.
+3. Ensure `PUBLIC_APP_ORIGIN` exactly matches the deployed FlutterShow origin.
 
 ## Supported MVP repositories
 

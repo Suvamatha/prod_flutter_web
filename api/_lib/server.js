@@ -98,7 +98,13 @@ export async function dispatchBuild({ buildId, project }) {
   const token = process.env.PLATFORM_GITHUB_TOKEN
   const repo = process.env.PLATFORM_GITHUB_REPO
   const workflow = process.env.PLATFORM_BUILD_WORKFLOW || 'build-demo.yml'
+  const publicOrigin = (
+    process.env.PUBLIC_APP_ORIGIN ||
+    process.env.VITE_SHARE_ORIGIN ||
+    ''
+  ).replace(/\/$/, '')
   if (!token || !repo) throw new Error('Production build worker is not configured.')
+  if (!/^https?:\/\//.test(publicOrigin)) throw new Error('PUBLIC_APP_ORIGIN is not configured.')
 
   const repoInfo = await fetch(`https://api.github.com/repos/${repo}`, {
     headers: {
@@ -125,6 +131,7 @@ export async function dispatchBuild({ buildId, project }) {
         project_id: project.id,
         repository: project.repository_url,
         path: project.app_path || '',
+        public_origin: publicOrigin,
       },
     }),
   })

@@ -16,6 +16,9 @@ on:
       path:
         required: false
         type: string
+      public_origin:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -53,6 +56,16 @@ jobs:
           PROJECT_ID: ${{ inputs.project_id }}
           REPOSITORY_URL: ${{ inputs.repository }}
           APP_PATH: ${{ inputs.path }}
+          PUBLIC_APP_ORIGIN: ${{ inputs.public_origin }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/worker-build.mjs
+
+      - name: Report worker failure
+        if: failure()
+        env:
+          BUILD_ID: ${{ inputs.build_id }}
+          PROJECT_ID: ${{ inputs.project_id }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/mark-worker-failed.mjs

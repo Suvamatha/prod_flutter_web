@@ -40,11 +40,20 @@ async function request(path, init = {}) {
 const hydrate = (p) => ({ ...p, shareUrl: shareUrlFor(p.demoId) })
 
 async function followJob(jobId, onStep) {
+  const started = Date.now()
+  const timeout = 40 * 60 * 1000
   for (;;) {
     const job = await request(`/builds/${jobId}`)
     onStep?.(job.step)
     if (job.status === 'succeeded') return hydrate(job.project)
     if (job.status === 'failed') throw new ApiError('BUILD_FAILED', "Your demo couldn't be built.", job)
+    if (Date.now() - started > timeout) {
+      throw new ApiError('BUILD_TIMEOUT', 'The build worker did not finish in time.', {
+        step: job.step,
+        log: job.log,
+        hint: 'Check the FlutterShow build-worker Actions run and verify its Supabase secrets.',
+      })
+    }
     await new Promise((r) => setTimeout(r, 1500))
   }
 }
