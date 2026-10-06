@@ -24,9 +24,17 @@ export default async function handler(req, res) {
   // Supabase intentionally serves HTML objects as text/plain. This small
   // same-origin endpoint corrects only index.html; large JS/WASM/assets still
   // come directly from Storage/CDN and never pass through a serverless function.
+  const storageBase =
+    `${supabaseUrl}/storage/v1/object/public/demos/${projectId}/${buildId}/`
+  let html = await upstream.text()
+  html = html.replace(
+    /<base\s+href=["'][^"']*["']\s*\/?>/i,
+    `<base href="${storageBase}">`,
+  )
+
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/html; charset=utf-8')
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, must-revalidate')
-  res.end(await upstream.text())
+  res.end(html)
 }

@@ -65,7 +65,17 @@ try {
   const baseHref = new URL(storageBase).pathname
   await updateBuild({ step: 2 })
   addLog(`Building Flutter web with base path ${baseHref}`)
-  await run('flutter', ['build', 'web', '--release', '--base-href', baseHref], appDir, addLog)
+  await run('flutter', ['build', 'web', '--release', '--pwa-strategy=none', '--base-href', baseHref], appDir, addLog)
+
+  // The entry page is served from FlutterShow while its large assets remain on
+  // the Storage CDN. Make the base absolute so browsers do not resolve assets
+  // against the FlutterShow/Vercel origin.
+  const builtIndex = path.join(appDir, 'build', 'web', 'index.html')
+  const indexHtml = fs.readFileSync(builtIndex, 'utf8').replace(
+    /<base\s+href=["'][^"']*["']\s*\/?>/i,
+    `<base href="${storageBase}">`,
+  )
+  fs.writeFileSync(builtIndex, indexHtml)
 
   await updateBuild({ step: 3 })
   const output = path.join(appDir, 'build', 'web')
